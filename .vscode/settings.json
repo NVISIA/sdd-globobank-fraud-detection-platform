@@ -1,5 +1,30 @@
 {
-    "editor.minimap.sectionHeaderFontSize": 14,
-    "scm.inputFontSize": 14,
-    "chat.fontSize": 14
+    "chat.promptFilesRecommendations": {
+        "speckit.constitution": true,
+        "speckit.specify": true,
+        "speckit.plan": true,
+        "speckit.tasks": true,
+        "speckit.implement": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        ".specify/scripts/bash/": true,
+        ".specify/scripts/powershell/": true
+    },
+    "github.copilot.enable": {
+        "*": true,
+        "yaml": true,
+        "plaintext": true,
+        "markdown": true
+    },
+    "github.copilot.advanced": {
+        "length": 1000,
+        "temperature": 0.1
+    },
+    "mcp.servers": {
+        "globobank-rag": {
+            "url": "http://localhost:8000",
+            "enabled": true,
+            "timeout": 30000
+        }
+    }
 }
