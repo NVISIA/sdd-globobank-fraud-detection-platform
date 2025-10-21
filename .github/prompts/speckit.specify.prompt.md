@@ -1,5 +1,5 @@
 ---
-description: Create or update the feature specification from a natural language feature description.
+description: Create or update the business capability specification from a natural language capability description for the Platform Specification Repository (PSR).
 ---
 
 ## User Input
@@ -12,9 +12,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `$ARGUMENTS` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
+The text the user typed after `/speckit.specify` in the triggering message **is** the business capability description. Assume you always have it available in this conversation even if `$ARGUMENTS` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
 
-Given that feature description, do this:
+Given that capability description, do this:
 
 1. Run the script `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS"` from repo root and parse its JSON output for BRANCH_NAME and SPEC_FILE. All file paths must be absolute.
   **IMPORTANT** You must only ever run this script once. The JSON is provided in the terminal as output - always refer to it to get the actual content you're looking for. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
@@ -22,74 +22,84 @@ Given that feature description, do this:
 
 3. Follow this execution flow:
 
-    1. Parse user description from Input
-       If empty: ERROR "No feature description provided"
-    2. Extract key concepts from description
-       Identify: actors, actions, data, constraints
-    3. For unclear aspects:
-       - Make informed guesses based on context and industry standards
-       - Only mark with [NEEDS CLARIFICATION: specific question] if:
-         - The choice significantly impacts feature scope or user experience
-         - Multiple reasonable interpretations exist with different implications
-         - No reasonable default exists
+    1. Parse capability description from Input
+       If empty: ERROR "No business capability description provided"
+    2. Extract key business concepts from description
+       Identify: business actors, business processes, business data, business constraints, business value
+    3. For unclear business aspects:
+       - Make informed guesses based on fraud detection context and financial services standards
+       - Only mark with [NEEDS CLARIFICATION: specific business question] if:
+         - The choice significantly impacts business capability scope or customer experience
+         - Multiple reasonable business interpretations exist with different implications
+         - No reasonable business default exists
        - **LIMIT: Maximum 3 [NEEDS CLARIFICATION] markers total**
-       - Prioritize clarifications by impact: scope > security/privacy > user experience > technical details
-    4. Fill User Scenarios & Testing section
-       If no clear user flow: ERROR "Cannot determine user scenarios"
-    5. Generate Functional Requirements
-       Each requirement must be testable
-       Use reasonable defaults for unspecified details (document assumptions in Assumptions section)
-    6. Define Success Criteria
-       Create measurable, technology-agnostic outcomes
-       Include both quantitative metrics (time, performance, volume) and qualitative measures (user satisfaction, task completion)
-       Each criterion must be verifiable without implementation details
-    7. Identify Key Entities (if data involved)
-    8. Return: SUCCESS (spec ready for planning)
+       - Prioritize clarifications by business impact: scope > regulatory/compliance > customer experience > operational details
+    4. Fill Business Capability Scenarios & Testing section
+       If no clear business capability flow: ERROR "Cannot determine business capability scenarios"
+    5. Generate Business Contract Requirements
+       Each requirement must be business-testable and technology-agnostic
+       Use reasonable defaults for unspecified business details (document assumptions in Business Context section)
+    6. Define Business Success Criteria
+       Create measurable, business-outcome focused criteria
+       Include both quantitative business metrics (fraud reduction, accuracy, throughput) and qualitative measures (customer satisfaction, regulatory compliance)
+       Each criterion must be verifiable through business outcomes without implementation details
+    7. Identify Key Business Entities (if business data involved)
+    8. Return: SUCCESS (business capability specification ready for platform planning)
 
-4. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings.
+4. Write the business capability specification to SPEC_FILE using the template structure, replacing placeholders with concrete business details derived from the capability description (arguments) while preserving section order and headings.
 
-5. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
+5. **Business Capability Specification Quality Validation**: After writing the initial spec, validate it against PSR quality criteria:
 
-   a. **Create Spec Quality Checklist**: Generate a checklist file at `FEATURE_DIR/checklists/requirements.md` using the checklist template structure with these validation items:
+   a. **Create Business Capability Quality Checklist**: Generate a checklist file at `SPEC_DIR/checklists/business-requirements.md` using the checklist template structure with these validation items:
    
       ```markdown
-      # Specification Quality Checklist: [FEATURE NAME]
+      # Business Capability Specification Quality Checklist: [CAPABILITY NAME]
       
-      **Purpose**: Validate specification completeness and quality before proceeding to planning
+      **Purpose**: Validate business capability specification completeness and quality before proceeding to platform planning
       **Created**: [DATE]
-      **Feature**: [Link to spec.md]
+      **Capability**: [Link to spec.md]
       
-      ## Content Quality
+      ## Business Content Quality
       
-      - [ ] No implementation details (languages, frameworks, APIs)
-      - [ ] Focused on user value and business needs
-      - [ ] Written for non-technical stakeholders
+      - [ ] No implementation details (technologies, frameworks, APIs)
+      - [ ] Focused on business value and capability outcomes
+      - [ ] Written for business stakeholders and platform consumers
       - [ ] All mandatory sections completed
+      - [ ] Constitutional compliance addressed
       
-      ## Requirement Completeness
+      ## Business Requirement Completeness
       
       - [ ] No [NEEDS CLARIFICATION] markers remain
-      - [ ] Requirements are testable and unambiguous
-      - [ ] Success criteria are measurable
-      - [ ] Success criteria are technology-agnostic (no implementation details)
-      - [ ] All acceptance scenarios are defined
-      - [ ] Edge cases are identified
-      - [ ] Scope is clearly bounded
-      - [ ] Dependencies and assumptions identified
+      - [ ] Business requirements are measurable and unambiguous
+      - [ ] Business success criteria are measurable
+      - [ ] Business success criteria are business-outcome focused (no implementation details)
+      - [ ] All business acceptance scenarios are defined
+      - [ ] Business edge cases are identified
+      - [ ] Business capability scope is clearly bounded
+      - [ ] Platform dependencies and business assumptions identified
       
-      ## Feature Readiness
+      ## Platform Contract Readiness
       
-      - [ ] All functional requirements have clear acceptance criteria
-      - [ ] User scenarios cover primary flows
-      - [ ] Feature meets measurable outcomes defined in Success Criteria
-      - [ ] No implementation details leak into specification
+      - [ ] All business contract requirements have clear acceptance criteria
+      - [ ] Business capability scenarios cover primary business flows
+      - [ ] Capability meets measurable business outcomes defined in Success Criteria
+      - [ ] No implementation details leak into business specification
+      - [ ] Contract versioning and dependencies clearly defined
+      - [ ] Integration points with other platform capabilities identified
+      
+      ## Constitutional Compliance Validation
+      
+      - [ ] Security-first development requirements addressed
+      - [ ] Real-time processing requirements specified (if applicable)
+      - [ ] AI/ML governance requirements included (if applicable)
+      - [ ] Regulatory compliance requirements documented
       
       ## Notes
       
       - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
       ```
    
-   b. **Run Validation Check**: Review the spec against each checklist item:
+   b. **Run Business Validation Check**: Review the spec against each checklist item:
       - For each item, determine if it passes or fails
       - Document specific issues found (quote relevant spec sections)
    
@@ -105,24 +115,24 @@ Given that feature description, do this:
       
       - **If [NEEDS CLARIFICATION] markers remain**:
         1. Extract all [NEEDS CLARIFICATION: ...] markers from the spec
-        2. **LIMIT CHECK**: If more than 3 markers exist, keep only the 3 most critical (by scope/security/UX impact) and make informed guesses for the rest
+        2. **LIMIT CHECK**: If more than 3 markers exist, keep only the 3 most critical (by business impact/scope/regulatory impact) and make informed guesses for the rest
         3. For each clarification needed (max 3), present options to user in this format:
         
            ```markdown
-           ## Question [N]: [Topic]
+           ## Business Question [N]: [Business Topic]
            
-           **Context**: [Quote relevant spec section]
+           **Business Context**: [Quote relevant spec section]
            
-           **What we need to know**: [Specific question from NEEDS CLARIFICATION marker]
+           **What we need to know**: [Specific business question from NEEDS CLARIFICATION marker]
            
-           **Suggested Answers**:
+           **Suggested Business Answers**:
            
-           | Option | Answer | Implications |
+           | Option | Business Answer | Business Implications |
            |--------|--------|--------------|
-           | A      | [First suggested answer] | [What this means for the feature] |
-           | B      | [Second suggested answer] | [What this means for the feature] |
-           | C      | [Third suggested answer] | [What this means for the feature] |
-           | Custom | Provide your own answer | [Explain how to provide custom input] |
+           | A      | [First suggested business answer] | [What this means for the business capability] |
+           | B      | [Second suggested business answer] | [What this means for the business capability] |
+           | C      | [Third suggested business answer] | [What this means for the business capability] |
+           | Custom | Provide your own business answer | [Explain how to provide custom business input] |
            
            **Your choice**: _[Wait for user response]_
            ```
@@ -148,61 +158,61 @@ Given that feature description, do this:
 
 ## Quick Guidelines
 
-- Focus on **WHAT** users need and **WHY**.
+- Focus on **WHAT** the business capability needs and **WHY** it provides value.
 - Avoid HOW to implement (no tech stack, APIs, code structure).
-- Written for business stakeholders, not developers.
+- Written for business stakeholders and platform capability consumers.
 - DO NOT create any checklists that are embedded in the spec. That will be a separate command.
 
 ### Section Requirements
 
-- **Mandatory sections**: Must be completed for every feature
-- **Optional sections**: Include only when relevant to the feature
+- **Mandatory sections**: Must be completed for every business capability
+- **Optional sections**: Include only when relevant to the capability
 - When a section doesn't apply, remove it entirely (don't leave as "N/A")
 
-### For AI Generation
+### For AI Generation in PSR Context
 
-When creating this spec from a user prompt:
+When creating this business capability specification from a user prompt:
 
-1. **Make informed guesses**: Use context, industry standards, and common patterns to fill gaps
-2. **Document assumptions**: Record reasonable defaults in the Assumptions section
-3. **Limit clarifications**: Maximum 3 [NEEDS CLARIFICATION] markers - use only for critical decisions that:
-   - Significantly impact feature scope or user experience
-   - Have multiple reasonable interpretations with different implications
-   - Lack any reasonable default
-4. **Prioritize clarifications**: scope > security/privacy > user experience > technical details
-5. **Think like a tester**: Every vague requirement should fail the "testable and unambiguous" checklist item
-6. **Common areas needing clarification** (only if no reasonable default exists):
-   - Feature scope and boundaries (include/exclude specific use cases)
-   - User types and permissions (if multiple conflicting interpretations possible)
-   - Security/compliance requirements (when legally/financially significant)
+1. **Make informed business guesses**: Use fraud detection context, financial services standards, and platform patterns to fill gaps
+2. **Document business assumptions**: Record reasonable business defaults in the Business Context section
+3. **Limit business clarifications**: Maximum 3 [NEEDS CLARIFICATION] markers - use only for critical business decisions that:
+   - Significantly impact business capability scope or customer experience
+   - Have multiple reasonable business interpretations with different implications
+   - Lack any reasonable business default
+4. **Prioritize business clarifications**: scope > regulatory/compliance > customer experience > operational details
+5. **Think like a business tester**: Every vague business requirement should fail the "measurable and unambiguous" checklist item
+6. **Common business areas needing clarification** (only if no reasonable business default exists):
+   - Business capability scope and boundaries (include/exclude specific business use cases)
+   - Business user types and roles (if multiple conflicting business interpretations possible)
+   - Regulatory/compliance requirements (when legally/financially significant for the business)
    
-**Examples of reasonable defaults** (don't ask about these):
+**Examples of reasonable business defaults** (don't ask about these):
 
-- Data retention: Industry-standard practices for the domain
-- Performance targets: Standard web/mobile app expectations unless specified
-- Error handling: User-friendly messages with appropriate fallbacks
-- Authentication method: Standard session-based or OAuth2 for web apps
-- Integration patterns: RESTful APIs unless specified otherwise
+- Business data retention: Financial services standard practices for fraud detection domain
+- Business performance targets: Standard fraud detection expectations unless specified
+- Business error handling: Customer-friendly business processes with appropriate business fallbacks
+- Business authentication method: Standard enterprise fraud detection patterns
+- Business integration patterns: Event-driven business capability integration unless specified otherwise
 
-### Success Criteria Guidelines
+### Business Success Criteria Guidelines
 
-Success criteria must be:
+Business success criteria must be:
 
-1. **Measurable**: Include specific metrics (time, percentage, count, rate)
-2. **Technology-agnostic**: No mention of frameworks, languages, databases, or tools
-3. **User-focused**: Describe outcomes from user/business perspective, not system internals
-4. **Verifiable**: Can be tested/validated without knowing implementation details
+1. **Measurable**: Include specific business metrics (fraud reduction percentage, accuracy rate, processing time, business volume)
+2. **Business-outcome focused**: No mention of technologies, implementations, or technical details
+3. **Customer/Business-focused**: Describe outcomes from business and customer perspective, not technical system internals
+4. **Verifiable**: Can be tested/validated through business outcomes without knowing implementation details
 
-**Good examples**:
+**Good business examples**:
 
-- "Users can complete checkout in under 3 minutes"
-- "System supports 10,000 concurrent users"
-- "95% of searches return results in under 1 second"
-- "Task completion rate improves by 40%"
+- "Reduce fraudulent transaction losses by 25%"
+- "Achieve >95% fraud detection accuracy"
+- "Process risk scoring decisions within 200ms"
+- "Maintain <2% false positive rate for customer transactions"
 
 **Bad examples** (implementation-focused):
 
-- "API response time is under 200ms" (too technical, use "Users see results instantly")
-- "Database can handle 1000 TPS" (implementation detail, use user-facing metric)
-- "React components render efficiently" (framework-specific)
+- "API response time is under 200ms" (too technical, use "Business decisions available instantly")
+- "Database can handle 1000 TPS" (implementation detail, use business transaction volume metric)
+- "React components render efficiently" (technology-specific)
 - "Redis cache hit rate above 80%" (technology-specific)

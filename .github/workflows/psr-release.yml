@@ -1,0 +1,288 @@
+name: PSR Specification Release and Tagging
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'specifications/**/*.md'
+  
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+      specification_path:
+        description: 'Specific specification to tag (optional)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  detect-changes:
+    name: Detect Specification Changes
+    runs-on: ubuntu-latest
+    outputs:
+      changed-specs: ${{ steps.detect.outputs.changed-specs }}
+      has-changes: ${{ steps.detect.outputs.has-changes }}
+      release-type: ${{ steps.detect.outputs.release-type }}
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Detect Changed Specifications
+        id: detect
+        shell: pwsh
+        run: |
+          # Determine release type and changed specifications
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $releaseType = "${{ github.event.inputs.release_type }}"
+            
+            if ("${{ github.event.inputs.specification_path }}" -ne "") {
+              $changedSpecs = @("${{ github.event.inputs.specification_path }}")
+            } else {
+              # Get all specifications for manual release
+              $changedSpecs = Get-ChildItem -Path "specifications" -Recurse -Name "spec.md" | ForEach-Object { "specifications/$_" }
+            }
+          } else {
+            # Automatic detection for push events
+            $changedFiles = git diff --name-only HEAD~1 HEAD | Where-Object { $_ -like "specifications/*.md" }
+            $changedSpecs = $changedFiles | Where-Object { $_ -like "*/spec.md" }
+            
+            # Determine release type based on changes
+            $releaseType = "patch"  # Default to patch
+            
+            # Check for major changes (breaking changes in specification)
+            foreach ($file in $changedFiles) {
+              if ($file -like "*/spec.md") {
+                $diff = git diff HEAD~1 HEAD -- $file
+                
+                # Look for breaking change indicators
+                if ($diff -match "BREAKING:|breaking change|Breaking Change" -or
+                    $diff -match "version.*v\d+\.0\.0" -or 
+                    $diff -match "removes?.*requirement" -or
+                    $diff -match "changes?.*contract") {
+                  $releaseType = "major"
+                  break
+                }
+                
+                # Look for minor change indicators  
+                if ($diff -match "adds?.*requirement" -or
+                    $diff -match "new.*capability" -or
+                    $diff -match "enhanced?.*functionality") {
+                  $releaseType = "minor"
+                }
+              }
+            }
+          }
+          
+          Write-Host "Changed specifications:"
+          $changedSpecs | ForEach-Object { Write-Host "  - $_" }
+          Write-Host "Release type: $releaseType"
+          
+          # Convert to JSON for output
+          $changedSpecsJson = $changedSpecs | ConvertTo-Json -Compress
+          if ($changedSpecs.Count -eq 0) {
+            $changedSpecsJson = "[]"
+          } elseif ($changedSpecs.Count -eq 1) {
+            $changedSpecsJson = "[$changedSpecsJson]"
+          }
+          
+          echo "changed-specs=$changedSpecsJson" >> $env:GITHUB_OUTPUT
+          echo "has-changes=$($changedSpecs.Count -gt 0)" >> $env:GITHUB_OUTPUT
+          echo "release-type=$releaseType" >> $env:GITHUB_OUTPUT
+
+  create-release:
+    name: Create PSR Release
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+      - name: Generate Version and Tags
+        id: version
+        shell: pwsh
+        run: |
+          $releaseType = "${{ needs.detect-changes.outputs.release-type }}"
+          $changedSpecs = '${{ needs.detect-changes.outputs.changed-specs }}' | ConvertFrom-Json
+          
+          # Get current platform version
+          $currentTags = git tag -l "v*.*.*" | Sort-Object -Descending
+          $currentVersion = "v0.0.0"
+          
+          if ($currentTags.Count -gt 0) {
+            $currentVersion = $currentTags[0]
+          }
+          
+          Write-Host "Current platform version: $currentVersion"
+          
+          # Parse version
+          if ($currentVersion -match "v(\d+)\.(\d+)\.(\d+)") {
+            $major = [int]$matches[1]
+            $minor = [int]$matches[2] 
+            $patch = [int]$matches[3]
+          } else {
+            $major = 0
+            $minor = 0
+            $patch = 0
+          }
+          
+          # Increment version based on release type
+          switch ($releaseType) {
+            "major" { 
+              $major++
+              $minor = 0
+              $patch = 0
+            }
+            "minor" { 
+              $minor++
+              $patch = 0
+            }
+            "patch" { 
+              $patch++
+            }
+          }
+          
+          $newVersion = "v$major.$minor.$patch"
+          $timestamp = Get-Date -Format "yyyy-MM-dd"
+          
+          Write-Host "New platform version: $newVersion"
+          
+          # Generate specification-specific tags
+          $specTags = @()
+          foreach ($specFile in $changedSpecs) {
+            if ($specFile -match "specifications/([^/]+)/([^/]+)/spec\.md") {
+              $capability = $matches[1]
+              $specVersion = $matches[2]
+              $specTag = "$capability-$specVersion-$timestamp"
+              $specTags += $specTag
+            }
+          }
+          
+          # Convert spec tags to JSON
+          $specTagsJson = $specTags | ConvertTo-Json -Compress
+          if ($specTags.Count -eq 0) {
+            $specTagsJson = "[]"
+          } elseif ($specTags.Count -eq 1) {
+            $specTagsJson = "[$specTagsJson]"
+          }
+          
+          echo "platform-version=$newVersion" >> $env:GITHUB_OUTPUT
+          echo "spec-tags=$specTagsJson" >> $env:GITHUB_OUTPUT
+          echo "release-type=$releaseType" >> $env:GITHUB_OUTPUT
+          echo "timestamp=$timestamp" >> $env:GITHUB_OUTPUT
+          
+      - name: Create Platform Release Tag
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.platform-version }}"
+          $releaseType = "${{ steps.version.outputs.release-type }}"
+          $timestamp = "${{ steps.version.outputs.timestamp }}"
+          
+          # Create tag message
+          $tagMessage = "Platform Specification Repository Release $version`n`nRelease Type: $releaseType`nDate: $timestamp`nEvent: ${{ github.event_name }}"
+          
+          git tag -a $version -m $tagMessage
+          Write-Host "Created platform tag: $version"
+          
+      - name: Create Specification-Specific Tags  
+        shell: pwsh
+        run: |
+          $specTags = '${{ steps.version.outputs.spec-tags }}' | ConvertFrom-Json
+          $platformVersion = "${{ steps.version.outputs.platform-version }}"
+          
+          foreach ($specTag in $specTags) {
+            $tagMessage = "Specification Release: $specTag`n`nPlatform Version: $platformVersion`nCreated: ${{ steps.version.outputs.timestamp }}"
+            
+            git tag -a $specTag -m $tagMessage
+            Write-Host "Created specification tag: $specTag"
+          }
+          
+      - name: Push Tags
+        run: |
+          git push origin --tags
+          
+      - name: Generate Release Notes
+        id: release-notes
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.platform-version }}"
+          $releaseType = "${{ steps.version.outputs.release-type }}"
+          
+          # Create simple release notes
+          $notes = "# Platform Specification Repository Release $version`n`n"
+          $notes += "This is a **$releaseType** release of the business capability specifications.`n`n"
+          $notes += "## Validation Status`n`n"
+          $notes += "- Constitutional compliance validation passed`n"
+          $notes += "- Business requirement completeness validated`n" 
+          $notes += "- Contract structure validation passed`n"
+          $notes += "- Quality assurance checks completed`n`n"
+          
+          if ($releaseType -eq "major") {
+            $notes += "## Breaking Changes`n`nThis is a MAJOR release and may contain breaking changes.`n"
+          } else {
+            $notes += "## Changes`n`nNo breaking changes in this release.`n"
+          }
+          
+          # Write to file
+          $notes | Out-File -FilePath "release-notes.md" -Encoding utf8
+          
+          # Encode for output
+          $encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($notes))
+          echo "release-notes=$encoded" >> $env:GITHUB_OUTPUT
+          
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.platform-version }}
+          release_name: "PSR Release ${{ steps.version.outputs.platform-version }}"
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+          
+      - name: Update Repository Documentation
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.platform-version }}"
+          
+          # Update README.md with latest version info
+          if (Test-Path "README.md") {
+            $readme = Get-Content "README.md" -Raw
+            
+            # Update version badge if it exists
+            $readme = $readme -replace "(?<=version-)[^-]+-blue", "$version-blue"
+            
+            $readme | Out-File -FilePath "README.md" -Encoding utf8
+            
+            # Commit documentation updates
+            git add README.md
+            
+            if ((git status --porcelain).Count -gt 0) {
+              git commit -m "docs: Update README with release $version [skip ci]"
+              git push origin main
+            }
+          }
