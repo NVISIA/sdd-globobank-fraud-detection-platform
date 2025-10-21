@@ -1,94 +1,152 @@
-# Feature Specification: [FEATURE NAME]
+# Business Capability Specification: [CAPABILITY NAME]
 
-**Feature Branch**: `[###-feature-name]`  
+**Specification Branch**: `[###-capability-name]`  
 **Created**: [DATE]  
 **Status**: Draft  
+**Version**: [VERSION]
+**Domain**: Fraud Detection Platform
 **Input**: User description: "$ARGUMENTS"
 
-## User Scenarios & Testing *(mandatory)*
+## Specification Metadata *(mandatory)*
+
+- **Capability Area**: [Business capability or domain area]
+- **Business Impact**: [High/Medium/Low - financial impact, customer impact]
+- **Regulatory Requirements**: [BSA/AML, FFIEC, FCRA, State regulations]
+- **Integration Points**: [Other platform capabilities this depends on]
+- **Contract Version**: [Semantic version for this specification]
+
+## Business Context *(mandatory)*
+
+[Describe the business problem this capability solves, the value it provides, and how it fits into the broader fraud detection platform]
+
+## Stakeholders *(mandatory)*
+
+- **Business Owner**: [Name/Role - accountable for business outcomes]
+- **Product Owner**: [Name/Role - responsible for requirements and prioritization]  
+- **Compliance Lead**: [Name/Role - ensures regulatory compliance]
+- **Technical Lead**: [Name/Role - responsible for technical architecture]
+- **Risk Owner**: [Name/Role - accountable for risk management]
+
+## Constitutional Compliance *(mandatory)*
+
+### Security-First Development Compliance
+
+[Describe how this capability adheres to zero-trust security architecture]
+
+### Real-Time Processing Compliance
+
+[Describe real-time requirements and response time constraints]
+
+### AI/ML Model Governance Compliance
+
+[If applicable, describe model validation, bias testing, and governance requirements]
+
+### Platform Regulatory Compliance
+
+[Specific BSA/AML, FFIEC, and other regulatory requirements this capability must meet]
+
+## Business Capability Scenarios & Testing *(mandatory)*
 
 <!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
+  IMPORTANT: Business scenarios should be PRIORITIZED as capability journeys ordered by business value.
+  Each scenario must be INDEPENDENTLY CONTRACTABLE - meaning if you implement just ONE of them,
+  you should still have a viable business capability that delivers value to the platform.
   
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
+  Assign priorities (P1, P2, P3, etc.) to each scenario, where P1 is the most critical business outcome.
+  Think of each scenario as a standalone business contract that can be:
+  - Specified independently as a business requirement
+  - Validated independently against business outcomes
+  - Contracted independently with implementing teams
+  - Measured independently for business value
 -->
 
-### User Story 1 - [Brief Title] (Priority: P1)
+### Business Scenario 1 - [Brief Business Outcome] (Priority: P1)
 
-[Describe this user journey in plain language]
+[Describe this business capability scenario in business language, focusing on value delivered]
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: [Explain the business value and why it has this priority level]
 
-**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-### User Story 2 - [Brief Title] (Priority: P2)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently]
+**Business Contract**: [Describe the business outcome this delivers and how it can be measured independently]
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** [business state], **When** [business action], **Then** [business outcome]
+2. **Given** [business state], **When** [business action], **Then** [business outcome]
 
 ---
 
-### User Story 3 - [Brief Title] (Priority: P3)
+### Business Scenario 2 - [Brief Business Outcome] (Priority: P2)
 
-[Describe this user journey in plain language]
+[Describe this business capability scenario in business language]
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: [Explain the business value and why it has this priority level]
 
-**Independent Test**: [Describe how this can be tested independently]
+**Business Contract**: [Describe the business outcome this delivers and how it can be measured independently]
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** [business state], **When** [business action], **Then** [business outcome]
 
 ---
 
-[Add more user stories as needed, each with an assigned priority]
+### Business Scenario 3 - [Brief Business Outcome] (Priority: P3)
 
-### Edge Cases
+[Describe this business capability scenario in business language]
+
+**Why this priority**: [Explain the business value and why it has this priority level]
+
+**Business Contract**: [Describe the business outcome this delivers and how it can be measured independently]
+
+**Acceptance Scenarios**:
+
+1. **Given** [business state], **When** [business action], **Then** [business outcome]
+
+---
+
+[Add more business scenarios as needed, each with an assigned priority]
+
+### Edge Cases and Exception Scenarios
 
 <!--
   ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
+  Fill them out with the right business edge cases and exception handling.
 -->
 
-- What happens when [boundary condition]?
-- How does system handle [error scenario]?
+- What happens when [business boundary condition]?
+- How does the capability handle [business exception scenario]?
+- What are the fallback business processes when [system limitation]?
 
-## Requirements *(mandatory)*
+## Business Contract Requirements *(mandatory)*
 
 <!--
   ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
+  Fill them out with the right business capability requirements.
+  Focus on WHAT the business needs, not HOW it will be implemented.
 -->
 
-### Functional Requirements
+### Functional Business Requirements
 
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
+- **BC-001**: Business capability MUST [specific business outcome, e.g., "detect fraudulent transactions"]
+- **BC-002**: Business capability MUST [specific business outcome, e.g., "provide risk scores"]  
+- **BC-003**: Business users MUST be able to [key business interaction, e.g., "review fraud alerts"]
+- **BC-004**: Business capability MUST [data requirement, e.g., "maintain customer transaction history"]
+- **BC-005**: Business capability MUST [behavioral requirement, e.g., "notify customers of suspicious activity"]
+
+### Fraud Detection Platform Integration Requirements
+
+#### Business Capability Integration Points
+
+- **INT-001**: Capability MUST integrate with [other platform capability] for [business purpose]
+- **INT-002**: Capability MUST provide data to [downstream capability] for [business purpose]
+- **INT-003**: Capability MUST consume events from [upstream capability] for [business purpose]
+- **INT-004**: Capability MUST maintain consistency with [related capability] for [business purpose]
+
+#### Cross-Capability Data Contracts
+
+- **DATA-001**: Capability MUST publish [business event] when [business condition] occurs
+- **DATA-002**: Capability MUST consume [business event] and [resulting business action]
+- **DATA-003**: Capability MUST maintain [business data entity] with [specific business attributes]
+- **DATA-004**: Capability MUST ensure [business data quality standard] for [business data entity]
 
 ### Fraud Detection Specific Requirements
 
@@ -161,16 +219,56 @@
 - **[Entity 1]**: [What it represents, key attributes without implementation]
 - **[Entity 2]**: [What it represents, relationships to other entities]
 
-## Success Criteria *(mandatory)*
+## Business Success Criteria *(mandatory)*
 
 <!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
+  ACTION REQUIRED: Define measurable business success criteria.
+  These must be business-outcome focused and measurable.
 -->
 
-### Measurable Outcomes
+### Measurable Business Outcomes
 
-- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
-- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
-- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
-- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- **BSC-001**: [Business metric, e.g., "Reduce fraudulent transaction losses by 25%"]
+- **BSC-002**: [Business metric, e.g., "Improve fraud detection accuracy to >95%"]
+- **BSC-003**: [Business metric, e.g., "Reduce false positive rate to <2%"]
+- **BSC-004**: [Business metric, e.g., "Process risk scoring within 200ms for real-time decisions"]
+- **BSC-005**: [Business metric, e.g., "Achieve 99.99% capability availability"]
+
+### Platform Integration Success Criteria
+
+- **PISC-001**: [Integration metric, e.g., "Successfully integrate with 3 downstream capabilities"]
+- **PISC-002**: [Integration metric, e.g., "Maintain data consistency across capability boundaries"]
+- **PISC-003**: [Integration metric, e.g., "Support platform scaling to 10,000 transactions/second"]
+
+### Regulatory and Compliance Success Criteria
+
+- **RCSC-001**: [Compliance metric, e.g., "Pass all BSA/AML audit requirements"]
+- **RCSC-002**: [Compliance metric, e.g., "Generate required regulatory reports within SLA"]
+- **RCSC-003**: [Compliance metric, e.g., "Maintain complete audit trail for all decisions"]
+
+### Key Business Entities *(include if capability involves business data)*
+
+- **[Business Entity 1]**: [What it represents in business terms, key business attributes]
+- **[Business Entity 2]**: [What it represents, relationships to other business entities]
+- **[Business Entity 3]**: [Cross-capability shared entities and their governance]
+
+## Contract Versioning and Dependencies *(mandatory)*
+
+### Version Compatibility
+
+- **Current Version**: [VERSION]
+- **Backward Compatibility**: [What previous versions this is compatible with]
+- **Breaking Changes**: [Any breaking changes from previous versions]
+- **Migration Path**: [How to migrate from previous versions]
+
+### Platform Dependencies
+
+- **Required Capabilities**: [List of other platform capabilities this depends on]
+- **Optional Integrations**: [List of optional platform integrations]
+- **External Dependencies**: [External systems or services required]
+
+### Contract Consumers
+
+- **Downstream Capabilities**: [Platform capabilities that depend on this contract]
+- **External Consumers**: [External systems that consume this capability]
+- **Integration Patterns**: [How other systems should integrate with this capability]

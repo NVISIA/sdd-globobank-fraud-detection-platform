@@ -1,0 +1,302 @@
+name: Platform Specification Repository (PSR) Validation
+
+on:
+  pull_request:
+    paths:
+      - 'specifications/**/*.md'
+      - '.specify/**'
+    types: [opened, synchronize, reopened]
+
+  workflow_dispatch:
+    inputs:
+      spec_path:
+        description: 'Path to specification file to validate'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate-specifications:
+    name: Validate Business Capability Specifications
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup PowerShell
+        shell: pwsh
+        run: |
+          Write-Host "PowerShell version: $($PSVersionTable.PSVersion)"
+          
+      - name: Detect Changed Specifications
+        id: detect-changes
+        shell: pwsh
+        run: |
+          # Get changed files in PR or use workflow_dispatch input
+          if ("${{ github.event_name }}" -eq "workflow_dispatch" -and "${{ github.event.inputs.spec_path }}" -ne "") {
+            $changedFiles = @("${{ github.event.inputs.spec_path }}")
+          } else {
+            # Get files changed in PR
+            $changedFiles = git diff --name-only HEAD~1 HEAD | Where-Object { $_ -like "specifications/*.md" }
+          }
+          
+          $specFiles = @()
+          foreach ($file in $changedFiles) {
+            if ($file -like "*/spec.md" -and (Test-Path $file)) {
+              $specFiles += $file
+            }
+          }
+          
+          Write-Host "Changed specification files:"
+          $specFiles | ForEach-Object { Write-Host "  - $_" }
+          
+          # Convert to JSON for output
+          $specFilesJson = $specFiles | ConvertTo-Json -Compress
+          if ($specFiles.Count -eq 0) {
+            $specFilesJson = "[]"
+          } elseif ($specFiles.Count -eq 1) {
+            $specFilesJson = "[$specFilesJson]"
+          }
+          
+          echo "spec-files=$specFilesJson" >> $env:GITHUB_OUTPUT
+          echo "has-specs=$($specFiles.Count -gt 0)" >> $env:GITHUB_OUTPUT
+          
+      - name: Validate Specification Quality
+        if: steps.detect-changes.outputs.has-specs == 'true'
+        id: validate-quality
+        shell: pwsh
+        run: |
+          $specFiles = '${{ steps.detect-changes.outputs.spec-files }}' | ConvertFrom-Json
+          $validationResults = @()
+          $overallStatus = "PASS"
+          
+          foreach ($specFile in $specFiles) {
+            Write-Host "Validating specification: $specFile"
+            
+            try {
+              $result = & .\.specify\scripts\powershell\validate-spec-quality.ps1 -SpecFile $specFile
+              $validation = $result | ConvertFrom-Json
+              $validationResults += $validation
+              
+              Write-Host "Validation result for $specFile`: $($validation.OverallStatus)"
+              
+              if ($validation.OverallStatus -eq "FAIL") {
+                $overallStatus = "FAIL"
+              } elseif ($validation.OverallStatus -eq "WARN" -and $overallStatus -ne "FAIL") {
+                $overallStatus = "WARN"
+              }
+              
+            } catch {
+              Write-Error "Failed to validate $specFile`: $($_.Exception.Message)"
+              $overallStatus = "FAIL"
+            }
+          }
+          
+          # Save results for comment generation
+          $validationResults | ConvertTo-Json -Depth 10 | Out-File -FilePath "validation-results.json" -Encoding utf8
+          
+          echo "overall-status=$overallStatus" >> $env:GITHUB_OUTPUT
+          
+      - name: Constitutional Compliance Check
+        if: steps.detect-changes.outputs.has-specs == 'true'
+        shell: pwsh
+        run: |
+          $specFiles = '${{ steps.detect-changes.outputs.spec-files }}' | ConvertFrom-Json
+          $constitutionFile = ".specify/memory/constitution.md"
+          
+          Write-Host "Checking constitutional compliance for specifications against: $constitutionFile"
+          
+          foreach ($specFile in $specFiles) {
+            Write-Host "Checking constitutional compliance: $specFile"
+            
+            # Read specification content
+            $specContent = Get-Content $specFile -Raw
+            
+            # Check for required constitutional sections
+            $requiredSections = @(
+              "Constitutional Compliance",
+              "Security-First Development Compliance", 
+              "Real-Time Processing Compliance",
+              "Platform Regulatory Compliance"
+            )
+            
+            $missingSections = @()
+            foreach ($section in $requiredSections) {
+              if ($specContent -notmatch $section) {
+                $missingSections += $section
+              }
+            }
+            
+            if ($missingSections.Count -gt 0) {
+              Write-Warning "Missing constitutional compliance sections in $specFile`:"
+              $missingSections | ForEach-Object { Write-Warning "  - $_" }
+            } else {
+              Write-Host "✓ Constitutional compliance sections present in $specFile"
+            }
+          }
+          
+      - name: Schema and Structure Validation
+        if: steps.detect-changes.outputs.has-specs == 'true'
+        shell: pwsh
+        run: |
+          $specFiles = '${{ steps.detect-changes.outputs.spec-files }}' | ConvertFrom-Json
+          
+          foreach ($specFile in $specFiles) {
+            Write-Host "Validating structure: $specFile"
+            
+            $content = Get-Content $specFile -Raw
+            
+            # Check for required metadata
+            $requiredMetadata = @(
+              "Specification Branch",
+              "Created",
+              "Status", 
+              "Version",
+              "Domain"
+            )
+            
+            $missingMetadata = @()
+            foreach ($metadata in $requiredMetadata) {
+              if ($content -notmatch "\*\*$metadata\*\*") {
+                $missingMetadata += $metadata
+              }
+            }
+            
+            if ($missingMetadata.Count -gt 0) {
+              Write-Warning "Missing required metadata in $specFile`:"
+              $missingMetadata | ForEach-Object { Write-Warning "  - $_" }
+            } else {
+              Write-Host "✓ Required metadata present in $specFile"
+            }
+            
+            # Check for version format
+            if ($content -match '\*\*Version\*\*:\s*(.+)') {
+              $version = $matches[1].Trim()
+              if ($version -notmatch '^v\d+\.\d+$') {
+                Write-Warning "Version format should be 'vX.Y' in $specFile, found: $version"
+              } else {
+                Write-Host "✓ Version format valid in $specFile`: $version"
+              }
+            }
+          }
+          
+      - name: Generate PR Comment
+        if: steps.detect-changes.outputs.has-specs == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read validation results
+            let validationResults = [];
+            try {
+              const resultsData = fs.readFileSync('validation-results.json', 'utf8');
+              validationResults = JSON.parse(resultsData);
+            } catch (error) {
+              console.log('No validation results file found');
+            }
+            
+            // Ensure validationResults is an array
+            if (!Array.isArray(validationResults)) {
+              validationResults = [validationResults];
+            }
+            
+            const overallStatus = '${{ steps.validate-quality.outputs.overall-status }}';
+            
+            // Generate comment content
+            let comment = `## 📋 Platform Specification Repository (PSR) Validation Report\n\n`;
+            
+            if (overallStatus === 'PASS') {
+              comment += `### ✅ Overall Status: PASSED\n\n`;
+              comment += `All business capability specifications meet PSR quality standards.\n\n`;
+            } else if (overallStatus === 'WARN') {
+              comment += `### ⚠️ Overall Status: WARNINGS\n\n`;
+              comment += `Business capability specifications have warnings that should be addressed.\n\n`;
+            } else {
+              comment += `### ❌ Overall Status: FAILED\n\n`;
+              comment += `Business capability specifications have issues that must be resolved.\n\n`;
+            }
+            
+            // Add detailed results for each specification
+            for (const result of validationResults) {
+              const statusIcon = result.OverallStatus === 'PASS' ? '✅' : 
+                               result.OverallStatus === 'WARN' ? '⚠️' : '❌';
+              
+              comment += `### ${statusIcon} \`${result.File}\`\n\n`;
+              
+              if (result.Checks) {
+                comment += `| Check | Status | Issues |\n`;
+                comment += `|-------|--------|--------|\n`;
+                
+                for (const [checkName, checkResult] of Object.entries(result.Checks)) {
+                  const checkIcon = checkResult.Status === 'PASS' ? '✅' : 
+                                  checkResult.Status === 'WARN' ? '⚠️' : '❌';
+                  const issues = checkResult.Issues || checkResult.MissingSections || [];
+                  const issueText = issues.length > 0 ? issues.join('<br>') : 'None';
+                  
+                  comment += `| ${checkName} | ${checkIcon} ${checkResult.Status} | ${issueText} |\n`;
+                }
+                comment += `\n`;
+              }
+              
+              if (result.Error) {
+                comment += `**Error**: ${result.Error}\n\n`;
+              }
+            }
+            
+            // Add constitutional compliance guidance
+            comment += `### 📜 Constitutional Compliance\n\n`;
+            comment += `All specifications must comply with the [GloboBank Fraud Detection Platform Constitution](.specify/memory/constitution.md):\n\n`;
+            comment += `- ✅ Security-First Development (NON-NEGOTIABLE)\n`;
+            comment += `- ✅ Real-Time Processing and Response\n`;
+            comment += `- ✅ AI/ML Model Governance (NON-NEGOTIABLE)\n`;
+            comment += `- ✅ Regulatory Compliance by Design\n\n`;
+            
+            // Add next steps
+            if (overallStatus === 'PASS') {
+              comment += `### 🚀 Next Steps\n\n`;
+              comment += `This specification is ready for:\n`;
+              comment += `- \`/speckit.clarify\` - Address any remaining clarifications\n`;
+              comment += `- \`/speckit.plan\` - Generate implementation planning\n\n`;
+            } else {
+              comment += `### 🔧 Required Actions\n\n`;
+              comment += `Please address the issues above before proceeding with:\n`;
+              comment += `- Update specifications to resolve FAIL status items\n`;
+              comment += `- Consider addressing WARN status items\n`;
+              comment += `- Re-run validation by updating the PR\n\n`;
+            }
+            
+            comment += `---\n`;
+            comment += `*This validation was performed by the PSR CI/CD pipeline. The Platform Specification Repository ensures business capability contracts meet quality standards before implementation.*`;
+            
+            // Post comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+            
+      - name: Set Status Check
+        if: steps.detect-changes.outputs.has-specs == 'true'
+        shell: pwsh
+        run: |
+          $status = '${{ steps.validate-quality.outputs.overall-status }}'
+          
+          if ($status -eq "FAIL") {
+            Write-Error "PSR validation failed. Business capability specifications must be updated to meet quality standards."
+            exit 1
+          } elseif ($status -eq "WARN") {
+            Write-Warning "PSR validation completed with warnings. Consider addressing these issues."
+            exit 0
+          } else {
+            Write-Host "✅ PSR validation passed. Business capability specifications meet quality standards."
+            exit 0
+          }
