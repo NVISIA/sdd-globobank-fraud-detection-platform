@@ -31,7 +31,79 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### Security-First Development ✅❌
+
+- [ ] Zero-trust architecture implemented with authentication/authorization for all components
+- [ ] All data transmissions encrypted (TLS 1.3 minimum)
+- [ ] All access logged and monitored with audit trails
+- [ ] Defense-in-depth security controls at network, application, data, and endpoint layers
+
+### Real-Time Processing Requirements ✅❌
+
+- [ ] Sub-200ms response time requirement identified and validated
+- [ ] Apache Kafka event streaming architecture planned for real-time processing
+- [ ] Automated fraud containment actions designed for immediate response
+
+### AI/ML Model Governance ✅❌
+
+- [ ] ML model validation and bias testing procedures defined
+- [ ] Model performance monitoring and drift detection planned
+- [ ] Regulatory compliance review process established for AI decisions
+- [ ] Model retraining schedules and deactivation thresholds specified
+
+### Test-Driven Development ✅❌
+
+- [ ] TDD approach confirmed with fraud scenario test cases
+- [ ] >80% test coverage requirement acknowledged
+- [ ] Fraud pattern simulations and edge cases identified for testing
+- [ ] Red-Green-Refactor cycle planned for implementation
+
+### Microservices Architecture ✅❌
+
+- [ ] Domain-driven service boundaries aligned with fraud detection capabilities
+- [ ] Apache Kafka communication patterns defined between services
+- [ ] Independent deployment strategy confirmed for each microservice
+
+### Regulatory Compliance ✅❌
+
+- [ ] BSA/AML compliance requirements identified and planned
+- [ ] FFIEC guidelines incorporated into design
+- [ ] Fair Credit Reporting Act compliance validated for AI decisions
+- [ ] Legal and risk team approval process established
+
+### Data Governance Framework ✅❌
+
+- [ ] Data quality standards defined (>99% completeness, >99.5% accuracy)
+- [ ] Data classification system implemented (Public, Internal, Confidential, Restricted)
+- [ ] GDPR Article 25 privacy by design compliance validated
+- [ ] Data lineage tracking and cataloging system planned
+- [ ] Automated data retention policies established (7 years fraud data, 3 years model data)
+
+### Model Risk Management ✅❌
+
+- [ ] Three-tier model validation process defined (statistical, business, regulatory)
+- [ ] Model performance thresholds established (>95% accuracy, >90% precision, >85% recall)
+- [ ] Data drift detection planned (PSI > 0.2 triggers review)
+- [ ] Model lifecycle governance with CRISP-DM methodology confirmed
+- [ ] Risk committee approval process for production deployment established
+
+### Performance and Scalability Standards ✅❌
+
+- [ ] Fraud scoring latency requirements validated (<100ms, P95 <200ms)
+- [ ] System throughput capacity planned (10,000+ TPS)
+- [ ] System availability target confirmed (99.99% uptime)
+- [ ] Auto-scaling strategy defined with Kubernetes HPA
+- [ ] Monthly load testing procedures established
+
+### Infrastructure and DevOps Standards ✅❌
+
+- [ ] Terraform IaC standards adoption confirmed (v1.5+, remote state)
+- [ ] CI/CD pipeline security requirements defined (SAST/DAST, signed commits)
+- [ ] Container security standards planned (distroless images, Trivy scanning)
+- [ ] Service mesh implementation confirmed (Istio for traffic management)
+- [ ] GitOps deployment strategy established (ArgoCD)
+
+**Constitution Compliance Status**: [PASS/FAIL] - [Brief justification if any items marked ❌]
 
 ## Project Structure
 

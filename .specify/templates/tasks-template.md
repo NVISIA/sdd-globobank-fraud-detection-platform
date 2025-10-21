@@ -12,11 +12,74 @@ description: "Task list template for feature implementation"
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
 ## Format: `[ID] [P?] [Story] Description`
+
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
 - Include exact file paths in descriptions
 
+## Fraud Detection Specific Task Categories
+
+### Security Tasks (NON-NEGOTIABLE)
+
+- **[SEC]**: Security-related tasks requiring security team review
+- **[AUTH]**: Authentication/authorization implementation tasks
+- **[AUDIT]**: Audit logging and monitoring implementation
+
+### Compliance Tasks (NON-NEGOTIABLE)
+
+- **[COMP]**: Regulatory compliance implementation
+- **[ML-GOV]**: AI/ML model governance and validation
+- **[RISK]**: Risk assessment and management tasks
+
+### Real-Time Processing Tasks
+
+- **[RT]**: Real-time processing and sub-200ms response requirements
+- **[KAFKA]**: Event streaming and Kafka integration
+- **[PERF]**: Performance optimization and monitoring
+
+### Fraud Detection Domain Tasks
+
+- **[FRAUD]**: Core fraud detection algorithm implementation
+- **[MODEL]**: Machine learning model development and deployment
+- **[ALERT]**: Fraud alert and notification systems
+
+### Data Governance Tasks (NON-NEGOTIABLE)
+
+- **[DG]**: Data governance and quality management implementation
+- **[PRIVACY]**: Privacy by design and GDPR compliance tasks
+- **[LINEAGE]**: Data lineage tracking and cataloging implementation
+- **[RETENTION]**: Data retention policy automation tasks
+
+### Model Risk Management Tasks (NON-NEGOTIABLE)
+
+- **[MRM]**: Model risk management and validation tasks
+- **[DRIFT]**: Model and data drift detection implementation
+- **[VALIDATION]**: Three-tier model validation process tasks
+- **[CRISP-DM]**: CRISP-DM methodology implementation tasks
+
+### Performance and Scalability Tasks
+
+- **[SCALE]**: System scalability and throughput optimization
+- **[MONITOR]**: Observability and performance monitoring tasks
+- **[SLA]**: Service level agreement and availability tasks
+- **[LOAD-TEST]**: Load testing and capacity planning tasks
+
+### Infrastructure and DevOps Tasks
+
+- **[IAC]**: Infrastructure as Code (Terraform) implementation
+- **[CICD]**: CI/CD pipeline and automation tasks
+- **[CONTAINER]**: Container security and orchestration tasks
+- **[GITOPS]**: GitOps and declarative deployment tasks
+
 ## Path Conventions
+
+- **Single project**: `src/`, `tests/` at repository root
+- **Web app**: `backend/src/`, `frontend/src/`
+- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
+- Paths shown below assume single project - adjust based on plan.md structure
+
+## Path Conventions
+
 - **Single project**: `src/`, `tests/` at repository root
 - **Web app**: `backend/src/`, `frontend/src/`
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
@@ -246,5 +309,3 @@ With multiple developers:
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
-
-
